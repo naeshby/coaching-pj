@@ -657,6 +657,71 @@
         min-width: 24px;
         text-align: right;
       }
+      .btn-delete {
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        cursor: pointer;
+        padding: 4px 8px;
+        line-height: 1;
+        transition: all 0.15s;
+        font-family: var(--font-mono);
+      }
+      .btn-delete:hover {
+        background: rgba(240, 88, 126, 0.1);
+        border-color: rgba(240, 88, 126, 0.35);
+        color: var(--danger);
+      }
+      .confirm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .confirm-overlay.open { display: flex; }
+      .confirm-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px;
+        width: 360px;
+        max-width: 90vw;
+        animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .confirm-icon { font-size: 28px; margin-bottom: 12px; }
+      .confirm-title {
+        font-family: var(--font-head);
+        font-size: 17px;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+      .confirm-msg {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 24px;
+        line-height: 1.6;
+      }
+      .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+      .btn-confirm-delete {
+        background: var(--danger);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 18px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      .btn-confirm-delete:hover { opacity: 0.85; }
+      .btn-confirm-delete:disabled { opacity: 0.5; cursor: not-allowed; }
 
       .pipeline {
         display: flex;
@@ -1286,11 +1351,12 @@
                       <th>Email</th>
                       <th>Status</th>
                       <th>Total Spent</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody id="customersTable">
                     <tr>
-                      <td colspan="5">
+                      <td colspan="6">
                         <div class="loading">
                           <div class="spinner"></div>
                           Loading...
@@ -1345,11 +1411,12 @@
                       <th>Stage</th>
                       <th>Score</th>
                       <th>Est. Value</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody id="leadsTable">
                     <tr>
-                      <td colspan="6">
+                      <td colspan="7">
                         <div class="loading">
                           <div class="spinner"></div>
                           Loading...
@@ -1394,11 +1461,12 @@
                       <th>Status</th>
                       <th>Scheduled</th>
                       <th>Duration</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody id="apptsTable">
                     <tr>
-                      <td colspan="6">
+                      <td colspan="7">
                         <div class="loading">
                           <div class="spinner"></div>
                           Loading...
@@ -1577,6 +1645,12 @@
         document.getElementById("pageTitle").textContent =
           page.charAt(0).toUpperCase() + page.slice(1);
         currentPage = page;
+        if (typeof gtag === "function") {
+          gtag("event", "page_view", {
+            page_title: page.charAt(0).toUpperCase() + page.slice(1),
+            page_path: "/" + page,
+          });
+        }
         loadPage(page);
       }
 
@@ -1614,12 +1688,20 @@
       <div class="kpi-card"><div class="kpi-label">Upcoming</div><div class="kpi-value" style="color:var(--warning)">${upcount}</div><div class="kpi-delta">Appointments</div></div>`;
         document.getElementById("totalCustomers").textContent = c.length || "—";
         const mo = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
-        const vs = mo.map(() => Math.floor(Math.random() * 15000 + 3000)),
-          mx = Math.max(...vs);
-        document.getElementById("revenueChart").innerHTML = vs
+        const curYear = new Date().getFullYear();
+        const monthlyRev = new Array(12).fill(0);
+        c.forEach((x) => {
+          if (!x.created_at || !x.total_spent) return;
+          const d = new Date(x.created_at);
+          if (d.getFullYear() === curYear) {
+            monthlyRev[d.getMonth()] += parseFloat(x.total_spent) || 0;
+          }
+        });
+        const mx = Math.max(...monthlyRev, 1);
+        document.getElementById("revenueChart").innerHTML = monthlyRev
           .map(
             (v, i) =>
-              `<div class="bar-wrap"><div class="bar-outer"><div class="bar-inner" style="height:${Math.round((v / mx) * 100)}%"></div></div><div class="bar-label">${mo[i]}</div></div>`,
+              `<div class="bar-wrap" title="${mo[i]}: ${fmt$(v)}"><div class="bar-outer"><div class="bar-inner" style="height:${Math.round((v / mx) * 100)}%"></div></div><div class="bar-label">${mo[i]}</div></div>`,
           )
           .join("");
         const up = a
@@ -1647,7 +1729,7 @@
       }
 
       async function loadCustomers() {
-        document.getElementById("customersTable").innerHTML = loadRow(5);
+        document.getElementById("customersTable").innerHTML = loadRow(6);
         const rows = arr(await apiFetch("/api/customers"));
         customersData = rows;
         document.getElementById("customerCount").textContent =
@@ -1656,14 +1738,14 @@
           ? rows
               .map(
                 (c) =>
-                  `<tr><td><strong>${c.first_name} ${c.last_name}</strong></td><td>${c.company || "—"}</td><td style="color:var(--muted)">${c.email || "—"}</td><td>${badge(c.status)}</td><td style="color:var(--accent);font-family:var(--font-head)">${fmt$(c.total_spent)}</td></tr>`,
+                  `<tr><td><strong>${c.first_name} ${c.last_name}</strong></td><td>${c.company || "—"}</td><td style="color:var(--muted)">${c.email || "—"}</td><td>${badge(c.status)}</td><td style="color:var(--accent);font-family:var(--font-head)">${fmt$(c.total_spent)}</td><td style="text-align:right"><button class="btn-delete" onclick="confirmDelete('customer','${c.id}','${c.first_name} ${c.last_name}')" title="Delete customer">✕</button></td></tr>`,
               )
               .join("")
-          : errRow(5, "No customers found");
+          : errRow(6, "No customers found");
       }
 
       async function loadLeads() {
-        document.getElementById("leadsTable").innerHTML = loadRow(6);
+        document.getElementById("leadsTable").innerHTML = loadRow(7);
         const rows = arr(await apiFetch("/api/leads"));
         leadsData = rows;
         document.getElementById("leadCount").textContent =
@@ -1698,14 +1780,14 @@
           ? rows
               .map(
                 (r) =>
-                  `<tr><td><strong>${r.first_name} ${r.last_name}</strong></td><td>${r.company || "—"}</td><td style="color:var(--muted)">${r.source || "—"}</td><td>${badge(r.stage)}</td><td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${r.score || 0}%"></div></div><div class="score-num">${r.score || 0}</div></div></td><td style="color:var(--accent);font-family:var(--font-head)">${fmt$(r.estimated_value)}</td></tr>`,
+                  `<tr><td><strong>${r.first_name} ${r.last_name}</strong></td><td>${r.company || "—"}</td><td style="color:var(--muted)">${r.source || "—"}</td><td>${badge(r.stage)}</td><td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${r.score || 0}%"></div></div><div class="score-num">${r.score || 0}</div></div></td><td style="color:var(--accent);font-family:var(--font-head)">${fmt$(r.estimated_value)}</td><td style="text-align:right"><button class="btn-delete" onclick="confirmDelete('lead','${r.id}','${r.first_name} ${r.last_name}')" title="Delete lead">✕</button></td></tr>`,
               )
               .join("")
-          : errRow(6, "No leads found");
+          : errRow(7, "No leads found");
       }
 
       async function loadAppointments() {
-        document.getElementById("apptsTable").innerHTML = loadRow(6);
+        document.getElementById("apptsTable").innerHTML = loadRow(7);
         const rows = arr(await apiFetch("/api/appointments"));
         apptsData = rows;
         document.getElementById("apptCount").textContent =
@@ -1714,10 +1796,10 @@
           ? rows
               .map(
                 (a) =>
-                  `<tr><td><strong>${a.title}</strong></td><td style="color:var(--muted)">${a.customer_id || "—"}</td><td style="color:var(--muted)">${a.type || "—"}</td><td>${badge(a.status)}</td><td style="color:var(--muted)">${fmtDate(a.scheduled_at)}</td><td style="color:var(--muted)">${a.duration_min || "—"} min</td></tr>`,
+                  `<tr><td><strong>${a.title}</strong></td><td style="color:var(--muted)">${a.customer_id || "—"}</td><td style="color:var(--muted)">${a.type || "—"}</td><td>${badge(a.status)}</td><td style="color:var(--muted)">${fmtDate(a.scheduled_at)}</td><td style="color:var(--muted)">${a.duration_min || "—"} min</td><td style="text-align:right"><button class="btn-delete" onclick="confirmDelete('appointment','${a.id}','${a.title}')" title="Delete appointment">✕</button></td></tr>`,
               )
               .join("")
-          : errRow(6, "No appointments found");
+          : errRow(7, "No appointments found");
       }
 
       async function loadAnalytics() {
@@ -1983,6 +2065,52 @@
         } else showToast("Failed to create appointment", true);
       }
 
+      let _deletePayload = null;
+
+      function confirmDelete(type, id, label) {
+        _deletePayload = { type, id };
+        const typeLabel = type === "appointment" ? "appointment" : type;
+        document.getElementById("confirmTitle").textContent =
+          "Delete " + typeLabel + "?";
+        document.getElementById("confirmMsg").textContent =
+          `"${label}" will be permanently removed from your CRM. This cannot be undone.`;
+        document.getElementById("confirmDeleteBtn").disabled = false;
+        document.getElementById("confirmDeleteBtn").textContent = "Delete";
+        document.getElementById("confirmOverlay").classList.add("open");
+      }
+
+      function closeConfirm() {
+        document.getElementById("confirmOverlay").classList.remove("open");
+        _deletePayload = null;
+      }
+
+      async function executeDelete() {
+        if (!_deletePayload) return;
+        const { type, id } = _deletePayload;
+        const btn = document.getElementById("confirmDeleteBtn");
+        btn.disabled = true;
+        btn.textContent = "Deleting...";
+        const endpoints = {
+          customer: "/api/customers",
+          lead: "/api/leads",
+          appointment: "/api/appointments",
+        };
+        const res = await apiFetch(`${endpoints[type]}/${id}`, {
+          method: "DELETE",
+        });
+        closeConfirm();
+        if (res !== null) {
+          showToast(
+            type.charAt(0).toUpperCase() + type.slice(1) + " deleted"
+          );
+          if (type === "customer") loadCustomers();
+          else if (type === "lead") loadLeads();
+          else if (type === "appointment") loadAppointments();
+        } else {
+          showToast("Failed to delete record", true);
+        }
+      }
+
       function showToast(msg, isErr = false) {
         document.getElementById("toastMsg").textContent = msg;
         document.getElementById("toastDot").className =
@@ -1992,5 +2120,18 @@
         setTimeout(() => t.classList.remove("show"), 3500);
       }
     </script>
+    <!-- Confirm Delete Dialog -->
+    <div class="confirm-overlay" id="confirmOverlay" onclick="if(event.target===this)closeConfirm()">
+      <div class="confirm-box">
+        <div class="confirm-icon">⚠</div>
+        <div class="confirm-title" id="confirmTitle">Delete record?</div>
+        <div class="confirm-msg" id="confirmMsg">This action cannot be undone.</div>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+          <button class="btn-confirm-delete" id="confirmDeleteBtn" onclick="executeDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
   </body>
 </html>

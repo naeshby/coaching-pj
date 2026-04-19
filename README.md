@@ -1,4 +1,4 @@
-# Anesu PJ
+# Coaching PJ
 
 Appointment booking, lead tracking & customer management platform built with Node.js, Express, and Supabase.
 
@@ -23,7 +23,7 @@ Appointment booking, lead tracking & customer management platform built with Nod
 ## Project Structure
 
 ```
-anesu-pj/
+coaching-pj/
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml          # GitHub Actions CI/CD pipeline
@@ -353,7 +353,7 @@ Or set them in the Vercel dashboard under **Project → Settings → Environment
 vercel --prod
 ```
 
-Your app is live at `https://anesu-pj.vercel.app` (or your custom domain).
+Your app is live at `https://coaching-pj.vercel.app` (or your custom domain).
 
 ---
 
