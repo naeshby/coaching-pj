@@ -2063,7 +2063,9 @@
             title,
             customer_id: cid,
             type: document.getElementById("mType").value,
-            scheduled_at: document.getElementById("mDate").value,
+            scheduled_at: new Date(
+              document.getElementById("mDate").value,
+            ).toISOString(),
             duration_min:
               parseInt(document.getElementById("mDuration").value) || 60,
             status: document.getElementById("mStatus").value,
