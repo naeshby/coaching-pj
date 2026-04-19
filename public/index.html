@@ -677,14 +677,16 @@
       .confirm-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.65);
+        background: rgba(0, 0, 0, 0.65);
         backdrop-filter: blur(4px);
         z-index: 2000;
         display: none;
         align-items: center;
         justify-content: center;
       }
-      .confirm-overlay.open { display: flex; }
+      .confirm-overlay.open {
+        display: flex;
+      }
       .confirm-box {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -694,7 +696,10 @@
         max-width: 90vw;
         animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
-      .confirm-icon { font-size: 28px; margin-bottom: 12px; }
+      .confirm-icon {
+        font-size: 28px;
+        margin-bottom: 12px;
+      }
       .confirm-title {
         font-family: var(--font-head);
         font-size: 17px;
@@ -707,7 +712,11 @@
         margin-bottom: 24px;
         line-height: 1.6;
       }
-      .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+      .confirm-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
       .btn-confirm-delete {
         background: var(--danger);
         color: #fff;
@@ -720,8 +729,13 @@
         cursor: pointer;
         transition: opacity 0.2s;
       }
-      .btn-confirm-delete:hover { opacity: 0.85; }
-      .btn-confirm-delete:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn-confirm-delete:hover {
+        opacity: 0.85;
+      }
+      .btn-confirm-delete:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
       .pipeline {
         display: flex;
@@ -1537,9 +1551,9 @@
     </div>
 
     <script>
-      const SUPABASE_URL = "https://cvflmervkyryoonkwron.supabase.co";
+      const SUPABASE_URL = "https://ynaenzqmykbrgvvtuybj.supabase.co";
       const SUPABASE_ANON =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2ZmxtZXJ2a3lyeW9vbmt3cm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjcyNzAsImV4cCI6MjA5MTIwMzI3MH0.uRM8aQ1WS1VHuaZFzdFNZvIE-wa-wcV9YWSyxT1U3e4";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluYWVuenFteWticmd2dnR1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3OTQ2NjIsImV4cCI6MjA5MTM3MDY2Mn0.96FyulEfIG6R2KYtF7mv9BnzVGvZ9T-iNu86GAjJA7Q";
       const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
       let accessToken = null;
@@ -2100,9 +2114,7 @@
         });
         closeConfirm();
         if (res !== null) {
-          showToast(
-            type.charAt(0).toUpperCase() + type.slice(1) + " deleted"
-          );
+          showToast(type.charAt(0).toUpperCase() + type.slice(1) + " deleted");
           if (type === "customer") loadCustomers();
           else if (type === "lead") loadLeads();
           else if (type === "appointment") loadAppointments();
@@ -2121,17 +2133,28 @@
       }
     </script>
     <!-- Confirm Delete Dialog -->
-    <div class="confirm-overlay" id="confirmOverlay" onclick="if(event.target===this)closeConfirm()">
+    <div
+      class="confirm-overlay"
+      id="confirmOverlay"
+      onclick="if (event.target === this) closeConfirm();"
+    >
       <div class="confirm-box">
         <div class="confirm-icon">⚠</div>
         <div class="confirm-title" id="confirmTitle">Delete record?</div>
-        <div class="confirm-msg" id="confirmMsg">This action cannot be undone.</div>
+        <div class="confirm-msg" id="confirmMsg">
+          This action cannot be undone.
+        </div>
         <div class="confirm-actions">
           <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
-          <button class="btn-confirm-delete" id="confirmDeleteBtn" onclick="executeDelete()">Delete</button>
+          <button
+            class="btn-confirm-delete"
+            id="confirmDeleteBtn"
+            onclick="executeDelete()"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
-
   </body>
 </html>
