@@ -48,6 +48,9 @@ app.use(
         connectSrc: [
           "'self'",
           "https://www.google-analytics.com",
+          "https://analytics.google.com",
+          "https://www.googletagmanager.com",
+          "https://region1.google-analytics.com",
           "https://ynaenzqmykbrgvvtuybj.supabase.co",
           "https://*.supabase.co",
           "https://cdn.jsdelivr.net",
