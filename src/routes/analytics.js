@@ -1,12 +1,10 @@
-// src/routes/analytics.js
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const ctrl = require('../controllers/analyticsController');
 
 router.get('/dashboard', authenticate, ctrl.getDashboardStats);
-router.get('/pipeline',  authenticate, ctrl.getPipelineStats);
-router.get('/revenue',   authenticate, ctrl.getRevenueByMonth);
-router.post('/track',    ctrl.trackClientEvent); // public — no auth needed
+router.get('/pipeline', authenticate, ctrl.getPipelineStats);
+router.post('/track', authenticate, ctrl.trackClientEvent);
 
 module.exports = router;
